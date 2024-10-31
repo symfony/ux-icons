@@ -68,7 +68,7 @@ final class ImportIconCommand extends Command
             $io->comment(\sprintf('Importing %s...', $fullName));
 
             try {
-                $svg = $this->iconify->fetchSvg($prefix, $name);
+                $iconSvg = $this->iconify->fetchIcon($prefix, $name)->toHtml();
             } catch (IconNotFoundException $e) {
                 $io->error($e->getMessage());
                 $result = Command::FAILURE;
@@ -79,7 +79,7 @@ final class ImportIconCommand extends Command
             $cursor = new Cursor($output);
             $cursor->moveUp(2);
 
-            $this->registry->add(\sprintf('%s/%s', $prefix, $name), $svg);
+            $this->registry->add(\sprintf('%s/%s', $prefix, $name), $iconSvg);
 
             $license = $this->iconify->metadataFor($prefix)['license'];
 

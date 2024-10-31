@@ -81,7 +81,7 @@ final class LockIconsCommand extends Command
             }
 
             try {
-                $svg = $this->iconify->fetchSvg($prefix, $name);
+                $iconSvg = $this->iconify->fetchIcon($prefix, $name)->toHtml();
             } catch (IconNotFoundException) {
                 // icon not found on iconify
                 if ($io->isVerbose()) {
@@ -90,7 +90,7 @@ final class LockIconsCommand extends Command
                 continue;
             }
 
-            $this->registry->add(\sprintf('%s/%s', $prefix, $name), $svg);
+            $this->registry->add(\sprintf('%s/%s', $prefix, $name), $iconSvg);
 
             $license = $this->iconify->metadataFor($prefix)['license'];
             ++$count;

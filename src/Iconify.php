@@ -85,25 +85,6 @@ final class Iconify
         ]);
     }
 
-    public function fetchSvg(string $prefix, string $name): string
-    {
-        if (!isset($this->sets()[$prefix])) {
-            throw new IconNotFoundException(\sprintf('The icon "%s:%s" does not exist on iconify.design.', $prefix, $name));
-        }
-
-        $response = $this->http->request('GET', \sprintf('/%s/%s.svg', $prefix, $name));
-
-        if (200 !== $response->getStatusCode()) {
-            throw new IconNotFoundException(\sprintf('The icon "%s:%s" does not exist on iconify.design.', $prefix, $name));
-        }
-
-        if (!str_starts_with($svg = $response->getContent(), '<svg')) {
-            throw new IconNotFoundException(\sprintf('The icon "%s:%s" does not exist on iconify.design.', $prefix, $name));
-        }
-
-        return $svg;
-    }
-
     public function hasIconSet(string $prefix): bool
     {
         return isset($this->sets()[$prefix]);
