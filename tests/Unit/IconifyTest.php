@@ -16,6 +16,7 @@ use Symfony\Component\Cache\Adapter\NullAdapter;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\JsonMockResponse;
 use Symfony\UX\Icons\Exception\IconNotFoundException;
+use Symfony\UX\Icons\Icon;
 use Symfony\UX\Icons\Iconify;
 
 /**
@@ -160,6 +161,71 @@ class IconifyTest extends TestCase
         $this->expectExceptionMessage('The icon "bi:heart" does not exist on iconify.design.');
 
         $iconify->fetchIcon('bi', 'heart');
+    }
+
+    public function testFetchIcons(): void
+    {
+        $iconify = new Iconify(
+            cache: new NullAdapter(),
+            endpoint: 'https://example.com',
+            http: new MockHttpClient([
+                new JsonMockResponse([
+                    'bi' => [],
+                ]),
+                new JsonMockResponse([
+                    'icons' => [
+                        'heart' => [
+                            'body' => '<path d="M0 0h24v24H0z" fill="none"/>',
+                            'height' => 17,
+                        ],
+                        'bar' => [
+                            'body' => '<path d="M0 0h24v24H0z" fill="none"/>',
+                            'height' => 17,
+                        ],
+                    ],
+                ]),
+            ]),
+        );
+
+        $icons = $iconify->fetchIcons('bi', ['heart', 'bar']);
+
+        $this->assertCount(2, $icons);
+        $this->assertSame(['heart', 'bar'], array_keys($icons));
+        $this->assertContainsOnlyInstancesOf(Icon::class, $icons);
+    }
+
+    public function testFetchIconsThrowsWithInvalidIconNames(): void
+    {
+        $iconify = new Iconify(
+            cache: new NullAdapter(),
+            endpoint: 'https://example.com',
+            http: new MockHttpClient([
+                new JsonMockResponse([
+                    'bi' => [],
+                ]),
+            ]),
+        );
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $iconify->fetchIcons('bi', ['à', 'foo']);
+    }
+
+    public function testFetchIconsThrowsWithTooManyIcons(): void
+    {
+        $iconify = new Iconify(
+            cache: new NullAdapter(),
+            endpoint: 'https://example.com',
+            http: new MockHttpClient([
+                new JsonMockResponse([
+                    'bi' => [],
+                ]),
+            ]),
+        );
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $iconify->fetchIcons('bi', array_fill(0, 50, '1234567890'));
     }
 
     public function testGetMetadata(): void
