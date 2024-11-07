@@ -85,6 +85,54 @@ final class Iconify
         ]);
     }
 
+    public function fetchIcons(string $prefix, array $names): array
+    {
+        if (!isset($this->sets()[$prefix])) {
+            throw new IconNotFoundException(\sprintf('The icon set "%s" does not exist on iconify.design.', $prefix));
+        }
+
+        // Sort to enforce cache hits
+        sort($names);
+        $queryString = implode(',', $names);
+        if (!preg_match('#^[a-z0-9-,]+$#', $queryString)) {
+            throw new \InvalidArgumentException('Invalid icon names.');
+        }
+
+        // URL must be 500 chars max (iconify limit)
+        // -39 chars: https://api.iconify.design/XXX.json?icons=
+        // -safe margin
+        if (450 < \strlen($prefix.$queryString)) {
+            throw new \InvalidArgumentException('The query string is too long.');
+        }
+
+        $response = $this->http->request('GET', \sprintf('/%s.json', $prefix), [
+            'headers' => [
+                'Accept' => 'application/json',
+            ],
+            'query' => [
+                'icons' => strtolower($queryString),
+            ],
+        ]);
+
+        if (200 !== $response->getStatusCode()) {
+            throw new IconNotFoundException(\sprintf('The icon set "%s" does not exist on iconify.design.', $prefix));
+        }
+
+        $data = $response->toArray();
+
+        $icons = [];
+        foreach ($data['icons'] as $iconName => $iconData) {
+            $height = $iconData['height'] ?? $data['height'] ??= $this->sets()[$prefix]['height'] ?? null;
+            $width = $iconData['width'] ?? $data['width'] ??= $this->sets()[$prefix]['width'] ?? null;
+
+            $icons[$iconName] = new Icon($iconData['body'], [
+                'viewBox' => \sprintf('0 0 %d %d', $width ?? $height, $height ?? $width),
+            ]);
+        }
+
+        return $icons;
+    }
+
     public function hasIconSet(string $prefix): bool
     {
         return isset($this->sets()[$prefix]);
