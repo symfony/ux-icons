@@ -27,19 +27,27 @@ final class Iconify
 {
     public const API_ENDPOINT = 'https://api.iconify.design';
 
+    // URL must be 500 chars max (iconify limit)
+    // -39 chars: https://api.iconify.design/XXX.json?icons=
+    // -safe margin
+    private const MAX_ICONS_QUERY_LENGTH = 400;
+
     private HttpClientInterface $http;
     private \ArrayObject $sets;
+    private int $maxIconsQueryLength;
 
     public function __construct(
         private CacheInterface $cache,
         string $endpoint = self::API_ENDPOINT,
         ?HttpClientInterface $http = null,
+        ?int $maxIconsQueryLength = null,
     ) {
         if (!class_exists(HttpClient::class)) {
             throw new \LogicException('You must install "symfony/http-client" to use Iconify. Try running "composer require symfony/http-client".');
         }
 
         $this->http = ScopingHttpClient::forBaseUri($http ?? HttpClient::create(), $endpoint);
+        $this->maxIconsQueryLength = min(self::MAX_ICONS_QUERY_LENGTH, $maxIconsQueryLength ?? self::MAX_ICONS_QUERY_LENGTH);
     }
 
     public function metadataFor(string $prefix): array
@@ -95,13 +103,10 @@ final class Iconify
         sort($names);
         $queryString = implode(',', $names);
         if (!preg_match('#^[a-z0-9-,]+$#', $queryString)) {
-            throw new \InvalidArgumentException('Invalid icon names.');
+            throw new \InvalidArgumentException('Invalid icon names.'.$queryString);
         }
 
-        // URL must be 500 chars max (iconify limit)
-        // -39 chars: https://api.iconify.design/XXX.json?icons=
-        // -safe margin
-        if (450 < \strlen($prefix.$queryString)) {
+        if (self::MAX_ICONS_QUERY_LENGTH < \strlen($prefix.$queryString)) {
             throw new \InvalidArgumentException('The query string is too long.');
         }
 
@@ -153,6 +158,40 @@ final class Iconify
         ]);
 
         return new \ArrayObject($response->toArray());
+    }
+
+    /**
+     * @return iterable<string[]>
+     */
+    public function chunk(string $prefix, array $names): iterable
+    {
+        if (100 < ($prefixLength = \strlen($prefix))) {
+            throw new \InvalidArgumentException(\sprintf('The icon prefix "%s" is too long.', $prefix));
+        }
+
+        $maxLength = $this->maxIconsQueryLength - $prefixLength;
+
+        $curBatch = [];
+        $curLength = 0;
+        foreach ($names as $name) {
+            if (100 < ($nameLength = \strlen($name))) {
+                throw new \InvalidArgumentException(\sprintf('The icon name "%s" is too long.', $name));
+            }
+            if ($curLength && ($maxLength < ($curLength + $nameLength + 1))) {
+                yield $curBatch;
+
+                $curBatch = [];
+                $curLength = 0;
+            }
+            $curLength += $nameLength + 1;
+            $curBatch[] = $name;
+        }
+
+        if ($curLength) {
+            yield $curBatch;
+        }
+
+        yield from [];
     }
 
     private function sets(): \ArrayObject

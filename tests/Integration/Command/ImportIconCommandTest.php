@@ -23,7 +23,7 @@ final class ImportIconCommandTest extends KernelTestCase
     use InteractsWithConsole;
 
     private const ICON_DIR = __DIR__.'/../../Fixtures/icons';
-    private const ICONS = ['uiw/dashboard.svg'];
+    private const ICONS = ['uiw/dashboard.svg', 'lucide/circle.svg'];
 
     /**
      * @before
@@ -45,8 +45,8 @@ final class ImportIconCommandTest extends KernelTestCase
 
         $this->executeConsoleCommand('ux:icons:import uiw:dashboard')
             ->assertSuccessful()
+            ->assertOutputContains('Icon set: uiw icons (License: MIT)')
             ->assertOutputContains('Importing uiw:dashboard')
-            ->assertOutputContains("Imported uiw:dashboard (License: MIT). Render with: {{ ux_icon('uiw:dashboard') }}")
         ;
 
         $this->assertFileExists($expectedFile);
@@ -60,13 +60,34 @@ final class ImportIconCommandTest extends KernelTestCase
         ;
     }
 
-    public function testImportNonExistentIcon(): void
+    public function testImportNonExistentIconSet(): void
     {
         $this->executeConsoleCommand('ux:icons:import something:invalid')
             ->assertStatusCode(1)
-            ->assertOutputContains('[ERROR] The icon "something:invalid" does not exist on iconify.design.')
+            ->assertOutputContains('[ERROR] Icon set "something" not found.')
+        ;
+    }
+
+    public function testImportNonExistentIcon(): void
+    {
+        $this->executeConsoleCommand('ux:icons:import lucide:not-existing-icon')
+            ->assertStatusCode(1)
+            ->assertOutputContains('Not Found lucide:not-existing-icon')
+            ->assertOutputContains('[ERROR] Imported 0/1 icons.')
         ;
 
-        $this->assertFileDoesNotExist(self::ICON_DIR.'/invalid.svg');
+        $this->assertFileDoesNotExist(self::ICON_DIR.'/not-existing-icon.svg');
+    }
+
+    public function testImportNonExistentIconWithExistentOne(): void
+    {
+        $this->executeConsoleCommand('ux:icons:import lucide:circle lucide:not-existing-icon')
+            ->assertStatusCode(0)
+            ->assertOutputContains('Imported lucide:circle')
+            ->assertOutputContains('Not Found lucide:not-existing-icon')
+            ->assertOutputContains('[WARNING] Imported 1/2 icons.')
+        ;
+
+        $this->assertFileDoesNotExist(self::ICON_DIR.'/not-existing-icon.svg');
     }
 }

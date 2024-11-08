@@ -238,6 +238,85 @@ class IconifyTest extends TestCase
         $this->assertSame('Font Awesome Solid', $metadata['name']);
     }
 
+    /**
+     * @dataProvider provideChunkCases
+     */
+    public function testChunk(int $maxQueryLength, string $prefix, array $names, array $chunks): void
+    {
+        $iconify = new Iconify(
+            new NullAdapter(),
+            'https://example.com',
+            new MockHttpClient([]),
+            $maxQueryLength,
+        );
+
+        $this->assertSame($chunks, iterator_to_array($iconify->chunk($prefix, $names)));
+    }
+
+    public static function provideChunkCases(): iterable
+    {
+        yield 'no icon should make no chunk' => [
+            10,
+            'ppppp',
+            [],
+            [],
+        ];
+
+        yield 'one icon should make one chunk' => [
+            10,
+            'ppppp',
+            ['aaaa1'],
+            [['aaaa1']],
+        ];
+
+        yield 'two icons that should make two chunck' => [
+            10,
+            'ppppp',
+            ['aa1', 'aa2'],
+            [['aa1'], ['aa2']],
+        ];
+
+        yield 'three icons that should make two chunck' => [
+            15,
+            'ppppp',
+            ['aaa1', 'aaa2', 'aaa3'],
+            [['aaa1', 'aaa2'], ['aaa3']],
+        ];
+
+        yield 'four icons that should make two chunck' => [
+            15,
+            'ppppp',
+            ['aaaaaaaa1', 'a2', 'a3', 'a4'],
+            [['aaaaaaaa1'], ['a2', 'a3', 'a4']],
+        ];
+    }
+
+    public function testChunkThrowWithIconPrefixTooLong(): void
+    {
+        $iconify = new Iconify(new NullAdapter(), 'https://example.com', new MockHttpClient([]));
+
+        $prefix = str_pad('p', 101, 'p');
+        $name = 'icon';
+
+        $this->expectExceptionMessage(\sprintf('The icon prefix "%s" is too long.', $prefix));
+
+        // We need to iterate over the iterator to trigger the exception
+        $result = iterator_to_array($iconify->chunk($prefix, [$name]));
+    }
+
+    public function testChunkThrowWithIconNameTooLong(): void
+    {
+        $iconify = new Iconify(new NullAdapter(), 'https://example.com', new MockHttpClient([]));
+
+        $prefix = 'prefix';
+        $name = str_pad('n', 101, 'n');
+
+        $this->expectExceptionMessage(\sprintf('The icon name "%s" is too long.', $name));
+
+        // We need to iterate over the iterator to trigger the exception
+        $result = iterator_to_array($iconify->chunk($prefix, [$name]));
+    }
+
     private function createHttpClient(mixed $data, int $code = 200): MockHttpClient
     {
         $mockResponse = new JsonMockResponse($data, ['http_code' => $code]);
