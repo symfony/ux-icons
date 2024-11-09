@@ -60,6 +60,10 @@ final class TestKernel extends Kernel
 
         $container->extension('ux_icons', [
             'icon_dir' => '%kernel.project_dir%/tests/Fixtures/icons',
+            'aliases' => [
+                'foo' => 'lucide:circle',
+                'bar' => 'lu:circle-off',
+            ],
             'icon_sets' => [
                 'fla' => [
                     'path' => '%kernel.project_dir%/tests/Fixtures/images/flags',

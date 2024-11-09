@@ -37,6 +37,8 @@ final class LockIconsCommand extends Command
         private Iconify $iconify,
         private LocalSvgIconRegistry $registry,
         private IconFinder $iconFinder,
+        private readonly array $iconAliases = [],
+        private readonly array $iconSetAliases = [],
     ) {
         parent::__construct();
     }
@@ -59,18 +61,24 @@ final class LockIconsCommand extends Command
         $count = 0;
 
         $io->comment('Scanning project for icons...');
+        $finderIcons = $this->iconFinder->icons();
 
-        foreach ($this->iconFinder->icons() as $icon) {
+        if ($this->iconAliases) {
+            $io->comment('Adding icons aliases...');
+        }
+
+        foreach ([...array_values($this->iconAliases), ...array_values($finderIcons)] as $icon) {
             if (2 !== \count($parts = explode(':', $icon))) {
                 continue;
             }
 
-            if (!$force && $this->registry->has($icon)) {
+            [$prefix, $name] = $parts;
+            $prefix = $this->iconSetAliases[$prefix] ?? $prefix;
+
+            if (!$force && $this->registry->has($prefix.':'.$name)) {
                 // icon already imported
                 continue;
             }
-
-            [$prefix, $name] = $parts;
 
             if (!$this->iconify->hasIconSet($prefix)) {
                 // not an icon set? example: "og:twitter"

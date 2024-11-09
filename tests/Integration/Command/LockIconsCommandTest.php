@@ -25,6 +25,8 @@ final class LockIconsCommandTest extends KernelTestCase
     private const ICONS = [
         __DIR__.'/../../Fixtures/icons/iconamoon/3d-duotone.svg',
         __DIR__.'/../../Fixtures/icons/flag/eu-4x3.svg',
+        __DIR__.'/../../Fixtures/icons/lucide/circle.svg',
+        __DIR__.'/../../Fixtures/icons/lucide/circle-off.svg',
     ];
 
     /**
@@ -50,9 +52,11 @@ final class LockIconsCommandTest extends KernelTestCase
         $this->executeConsoleCommand('ux:icons:lock')
             ->assertSuccessful()
             ->assertOutputContains('Scanning project for icons...')
+            ->assertOutputContains('Imported lucide:circle')
+            ->assertOutputContains('Imported lucide:circle-off')
             ->assertOutputContains('Imported flag:eu-4x3')
             ->assertOutputContains('Imported iconamoon:3d-duotone')
-            ->assertOutputContains('Imported 2 icons')
+            ->assertOutputContains('Imported 4 icons')
         ;
 
         foreach (self::ICONS as $icon) {
@@ -70,17 +74,21 @@ final class LockIconsCommandTest extends KernelTestCase
         $this->executeConsoleCommand('ux:icons:lock')
             ->assertSuccessful()
             ->assertOutputContains('Scanning project for icons...')
+            ->assertOutputContains('Imported lucide:circle')
+            ->assertOutputContains('Imported lucide:circle-off')
             ->assertOutputContains('Imported flag:eu-4x3')
             ->assertOutputContains('Imported iconamoon:3d-duotone')
-            ->assertOutputContains('Imported 2 icons')
+            ->assertOutputContains('Imported 4 icons')
         ;
 
         $this->executeConsoleCommand('ux:icons:lock --force')
             ->assertSuccessful()
             ->assertOutputContains('Scanning project for icons...')
+            ->assertOutputContains('Imported lucide:circle')
+            ->assertOutputContains('Imported lucide:circle-off')
             ->assertOutputContains('Imported flag:eu-4x3')
             ->assertOutputContains('Imported iconamoon:3d-duotone')
-            ->assertOutputContains('Imported 2 icons')
+            ->assertOutputContains('Imported 4 icons')
         ;
     }
 }
