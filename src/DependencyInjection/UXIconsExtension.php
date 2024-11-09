@@ -178,6 +178,11 @@ final class UXIconsExtension extends ConfigurableExtension implements Configurat
             }
         }
 
+        $container->getDefinition('.ux_icons.command.lock')
+            ->setArgument(3, $mergedConfig['aliases'])
+            ->setArgument(4, $iconSetAliases)
+        ;
+
         if (!$container->getParameter('kernel.debug')) {
             $container->removeDefinition('.ux_icons.command.import');
         }
