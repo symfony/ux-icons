@@ -24,10 +24,15 @@ use Symfony\UX\Icons\Twig\UXIconRuntime;
 
 return static function (ContainerConfigurator $container): void {
     $container->services()
+        ->set('.ux_icons.cache')
+            ->parent('cache.system')
+            ->private()
+            ->tag('cache.pool')
+
         ->set('.ux_icons.cache_icon_registry', CacheIconRegistry::class)
             ->args([
                 service('.ux_icons.chain_registry'),
-                service('cache.system'),
+                service('.ux_icons.cache'),
             ])
 
         ->set('.ux_icons.local_svg_icon_registry', LocalSvgIconRegistry::class)

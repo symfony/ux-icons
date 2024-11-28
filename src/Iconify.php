@@ -196,7 +196,7 @@ final class Iconify
 
     private function sets(): \ArrayObject
     {
-        return $this->sets ??= $this->cache->get('ux-iconify-sets', function () {
+        return $this->sets ??= $this->cache->get('iconify-sets', function () {
             $response = $this->http->request('GET', '/collections');
 
             return new \ArrayObject($response->toArray());

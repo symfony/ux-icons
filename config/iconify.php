@@ -27,7 +27,7 @@ return static function (ContainerConfigurator $container): void {
 
         ->set('.ux_icons.iconify', Iconify::class)
             ->args([
-                service('cache.system'),
+                service('.ux_icons.cache'),
                 abstract_arg('endpoint'),
                 service('http_client')->nullOnInvalid(),
             ])
