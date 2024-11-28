@@ -34,7 +34,7 @@ final class CacheIconRegistry implements IconRegistryInterface
         }
 
         return $this->cache->get(
-            \sprintf('ux-icon-%s', Icon::nameToId($name)),
+            Icon::nameToId($name),
             fn () => $this->inner->get($name),
             beta: $refresh ? \INF : null,
         );
