@@ -173,15 +173,14 @@ final class UXIconsExtension extends ConfigurableExtension implements Configurat
             $container->getDefinition('.ux_icons.iconify_on_demand_registry')
                 ->setArgument(1, $iconSetAliases);
 
+            $container->getDefinition('.ux_icons.command.lock')
+                ->setArgument(3, $mergedConfig['aliases'])
+                ->setArgument(4, $iconSetAliases);
+
             if (!$mergedConfig['iconify']['on_demand']) {
                 $container->removeDefinition('.ux_icons.iconify_on_demand_registry');
             }
         }
-
-        $container->getDefinition('.ux_icons.command.lock')
-            ->setArgument(3, $mergedConfig['aliases'])
-            ->setArgument(4, $iconSetAliases)
-        ;
 
         if (!$container->getParameter('kernel.debug')) {
             $container->removeDefinition('.ux_icons.command.import');
