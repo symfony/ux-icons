@@ -503,7 +503,7 @@ returning the HTML output.
 
     .. code-block:: html+twig
 
-        {# The 🧸 will be ignore in the HTML output #}
+        {# The 🧸 will be ignored in the HTML output #}
         <twig:ux:icon name="user-profile" class="w-4 h-4">🧸</twig:ux:icon>
 
         {# Renders "user-profile.svg" #}
