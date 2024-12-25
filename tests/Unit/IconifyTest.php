@@ -190,7 +190,47 @@ class IconifyTest extends TestCase
         $icons = $iconify->fetchIcons('bi', ['heart', 'bar']);
 
         $this->assertCount(2, $icons);
-        $this->assertSame(['heart', 'bar'], array_keys($icons));
+        $this->assertSame(['bar', 'heart'], array_keys($icons));
+        $this->assertContainsOnlyInstancesOf(Icon::class, $icons);
+    }
+
+    public function testFetchIconsByAliases(): void
+    {
+        $iconify = new Iconify(
+            cache: new NullAdapter(),
+            endpoint: 'https://example.com',
+            http: new MockHttpClient([
+                new JsonMockResponse([
+                    'mdi' => [],
+                ]),
+                new JsonMockResponse([
+                    'aliases' => [
+                        'capsule' => [
+                            'parent' => 'pill',
+                        ],
+                        'sign' => [
+                            'parent' => 'draw',
+                        ],
+                    ],
+                    'icons' => [
+                        'pill' => [
+                            'body' => '<path d="M0 0h24v24H0z" fill="none"/>',
+                        ],
+                        'glasses' => [
+                            'body' => '<path d="M0 0h24v24H0z" fill="none"/>',
+                        ],
+                        'draw' => [
+                            'body' => '<path d="M0 0h24v24H0z" fill="none"/>',
+                        ],
+                    ],
+                ]),
+            ]),
+        );
+
+        $icons = $iconify->fetchIcons('mdi', ['capsule', 'sign', 'glasses']);
+
+        $this->assertCount(3, $icons);
+        $this->assertSame(['capsule', 'glasses', 'sign'], array_keys($icons));
         $this->assertContainsOnlyInstancesOf(Icon::class, $icons);
     }
 

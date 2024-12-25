@@ -126,7 +126,12 @@ final class Iconify
         $data = $response->toArray();
 
         $icons = [];
-        foreach ($data['icons'] as $iconName => $iconData) {
+        foreach ($names as $iconName) {
+            $iconData = $data['icons'][$data['aliases'][$iconName]['parent'] ?? $iconName] ?? null;
+            if (!$iconData) {
+                continue;
+            }
+
             $height = $iconData['height'] ?? $data['height'] ??= $this->sets()[$prefix]['height'] ?? null;
             $width = $iconData['width'] ?? $data['width'] ??= $this->sets()[$prefix]['width'] ?? null;
 
