@@ -67,12 +67,14 @@ final class IconFinder
     private function templateFiles(LoaderInterface $loader): iterable
     {
         if ($loader instanceof FilesystemLoader) {
-            $paths = [];
+            $paths = $loader->getPaths();
             foreach ($loader->getNamespaces() as $namespace) {
                 $paths = [...$paths, ...$loader->getPaths($namespace)];
             }
-            foreach ((new Finder())->files()->in($paths)->name('*.twig') as $file) {
-                yield (string) $file;
+            if ($paths) {
+                foreach ((new Finder())->files()->in($paths)->name('*.twig') as $file) {
+                    yield (string) $file;
+                }
             }
         }
 
