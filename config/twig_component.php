@@ -12,7 +12,6 @@
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Symfony\UX\Icons\Twig\UXIconComponent;
-use Symfony\UX\Icons\Twig\UXIconComponentListener;
 
 return static function (ContainerConfigurator $container): void {
     $container->services()
